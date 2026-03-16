@@ -1,0 +1,44 @@
+services:
+  ros2:
+    build:
+      dockerfile: ./Dockerfile
+    image: ros-jazzy:latest
+    container_name: ros2-jazzy
+    privileged: true
+    network_mode: host
+    ipc: host
+
+    volumes:
+      - /dev:/dev
+      - .:/home/ubuntu/project
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /run/user/1000:/run/user/1000
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VASIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - XDG_RUNTIME_DIR=/run/user/1000
+      - GZ_IP=127.0.0.1
+      #- GZ_PARTITION=rudolf_sim
+    tty: true
+    stdin_open: true 
+
+  microros_serial:
+    image: microros/micro-ros-agent:jazzy
+    container_name: microros-serial-agent
+    privileged: true
+    network_mode: host
+    volumes:
+      - /dev:/dev
+    command: serial --dev /dev/ttyUSB0 -v6
+    tty: true
+
+  microros_udp:
+    image: microros/micro-ros-agent:jazzy
+    container_name: microros-udp-agent
+    privileged: true
+    network_mode: host
+    volumes:
+      - /dev:/dev
+    command: udp4 --port 8888 -v6
+    tty: true
