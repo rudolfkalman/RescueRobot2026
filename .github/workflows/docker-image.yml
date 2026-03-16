@@ -15,7 +15,8 @@ jobs:
 
       - name: Run Colcon Build in Container
         run: |
-          docker run --rm -v ${{ github.workspace }}:/ws -w /ws rescue-robot-ci /bin/bash -c "
+          docker run --rm -v ${{ github.workspace }}:/ws -w /ws --user root rescue-robot-ci /bin/bash -c "
+            chown -R root:root /ws &&
             . /opt/ros/jazzy/setup.sh &&
             colcon build --symlink-install
           "
