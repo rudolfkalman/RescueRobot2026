@@ -1,4 +1,55 @@
+# ROS2
 build/
 log/
-install
+install/
+*.bag
+*.db3
+*.mcap
+
+# Docker
 docker-compose.override.yml
+.dockerignore
+
+# C++ build
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Platformio
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+.$py.class
+*.so
+
+# Env
+.env
+.venv
+env/
+venv/
+ENV/
+venv.bak/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log
+*.log
+
+# Tmp
+*.tmp
+*.temp
+
+# bak
+*.bak
+*.backup
