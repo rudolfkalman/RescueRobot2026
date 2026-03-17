@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: rudolfkalman/rescuerobot2026
 
 jobs:
   build-and-push:
@@ -36,7 +36,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY  }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
@@ -48,6 +48,8 @@ jobs:
           context: .
           # PRの時はビルドチェックのみ、マージ(push)時はGHCRに保存
           push: ${{ github.event_name != 'pull_request' }}
+          # ★ビルドしたイメージをこのActions内で使えるようにロードする
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -56,7 +58,11 @@ jobs:
       # コンテナの中で実際にビルドが通るかチェック
       - name: Test Colcon Build
         run: |
-          docker run --rm -v ${{ github.workspace }}:/ws -w /ws --user root ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} /bin/bash -c "
+          # tags の中から 1 つ目（フルネームのタグ）を取り出して使う
+          # ここで ${{ steps.meta.outputs.version }} は使わず、フルタグを指定します
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          
+          docker run --rm -v ${{ github.workspace }}:/ws -w /ws --user root $IMAGE_TAG /bin/bash -c "
             chown -R root:root /ws &&
             . /opt/ros/jazzy/setup.sh &&
             colcon build --symlink-install
