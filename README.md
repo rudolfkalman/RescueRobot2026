@@ -61,6 +61,65 @@ Windowsで開発を行う場合は、必ず **WSL2** 上でコンテナを起動
 
 ---
 
+## 📝 命名規則・コーディング規約
+
+### ファイル名・ディレクトリ名
+
+すべて `snake_case` に統一。スペース・大文字・ハイフンは**使用禁止**。テストファイルは `test_` プレフィックスを付ける（例: `test_motor_controller.cpp`）。
+
+### C++（[Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 準拠）
+
+| 対象 | 規則 | 例 |
+|---|---|---|
+| 変数（ローカル） | `snake_case` | `motor_speed` |
+| 変数（メンバ） | `snake_case_` | `node_id_` |
+| 関数・クラス・構造体 | `UpperCamelCase` | `GetSensorData()`, `MotorController` |
+| 定数・constexpr | `kUpperCamelCase` | `kMaxSpeed` |
+| 名前空間 | `snake_case` | `ctrl_driver` |
+| マクロ | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT` |
+
+インデント: **スペース2つ**、1行: **最大100文字**、`*`/`&` は型側（`int* ptr`）
+
+### Python（[PEP 8](https://peps.python.org/pep-0008/) 準拠）
+
+| 対象 | 規則 | 例 |
+|---|---|---|
+| 変数・関数 | `snake_case` | `get_sensor_data()` |
+| クラス | `UpperCamelCase` | `MotorController` |
+| 定数 | `UPPER_SNAKE_CASE` | `MAX_SPEED` |
+| プライベートメンバ | `_snake_case` | `self._node_id` |
+
+インデント: **スペース4つ**、1行: **最大100文字**、型アノテーション・docstring を使用すること。
+
+### 共通
+
+- コメントは日本語・英語どちらか一方に**1ファイル内で統一**（混在禁止）
+- マジックナンバー禁止（定数または設定ファイルに切り出す）
+- `TODO` / `FIXME` には担当者名と日付を記載: `// TODO(tanaka 2026-01-01): 内容`
+- 不要なコメントアウトコードはコミット前に削除すること
+
+---
+
+### 🚫 キャッシュ・不要ファイルのアップロード禁止
+
+以下のファイル・ディレクトリは **`.gitignore` で管理されているが、誤ってコミットしないよう各自も注意**すること。  
+**発見した場合は即座に担当者に報告し、履歴から削除する。**
+
+| 禁止対象 | 具体例 |
+|---|---|
+| ビルド成果物 | `build/`, `install/`, `log/`, `*.o`, `*.so`, `*.pyc` |
+| Python キャッシュ | `__pycache__/`, `*.pyo`, `.pytest_cache/` |
+| C++ キャッシュ | `.cache/`, `compile_commands.json`（自動生成分）|
+| エディタ設定 | `.vscode/settings.json`（個人設定）, `.idea/` |
+| OS 生成ファイル | `.DS_Store`, `Thumbs.db` |
+| 認証情報・秘密鍵 | `*.pem`, `*.key`, `.env`, `credentials.json` |
+| ログファイル | `*.log`, `ros2_logs/` |
+
+> 💡 **誤ってコミットしてしまった場合**は `git rm --cached <file>` で追跡を解除し、`.gitignore` に追記の上、PRで対応すること。  
+> 認証情報が含まれた場合は**必ず管理者に即時報告**すること。
+
+---
+
 ## 🚀 迷った時の3行コマンド集
 
 「作業を始めてから、GitHubに上げるまで」のテンプレです。
