@@ -1,0 +1,63 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [ master, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: rudolfkalman/rescuerobot2026
+
+jobs:
+  cpplint:
+    name: cpplint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cpplint
+        run: pip install cpplint
+
+      - name: Run cpplint
+        run: |
+          find src -name "*.cpp" -o -name "*.hpp" | \
+            grep -v "src/ext_" | \
+            xargs cpplint \
+              --filter=-build/c++11,-legal/copyright \
+              --linelength=100
+
+  clang-tidy:
+    name: clang-tidy
+    runs-on: ubuntu-latest
+    # build-and-push.yml でビルド済みのイメージを再利用する
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for lint (cache only)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: rescuerobot2026:lint
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and run clang-tidy
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/ws -w /ws \
+            --user root \
+            rescuerobot2026:lint /bin/bash -c "
+              apt-get update -q && apt-get install -y -q clang-tidy &&
+              . /opt/ros/jazzy/setup.sh &&
+              colcon build \
+                --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                --packages-ignore \$(ls src | grep '^ext_') || true &&
+              find src -name '*.cpp' | grep -v 'src/ext_' | while read file; do
+                clang-tidy \"\$file\" -p build --config-file=.clang-tidy -- -std=c++17
+              done
+            "
