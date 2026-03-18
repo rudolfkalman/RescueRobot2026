@@ -55,7 +55,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # コンテナの中で実際にビルドが通るかチェック
+      # コンテナの中で実際にビルドが通るかチェック + clang-tidy
       - name: Test Colcon Build
         run: |
           # tags の中から 1 つ目（フルネームのタグ）を取り出して使う
@@ -65,5 +65,11 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/ws -w /ws --user root $IMAGE_TAG /bin/bash -c "
             chown -R root:root /ws &&
             . /opt/ros/jazzy/setup.sh &&
-            colcon build --symlink-install
+            colcon build --symlink-install \
+              --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              --packages-ignore \$(ls src | grep '^ext_') &&
+            find src -name '*.cpp' | grep -v 'src/ext_' | while read file; do
+              pkg=\$(echo \"\$file\" | cut -d/ -f2)
+              clang-tidy \"\$file\" -p \"build/\$pkg\" --config-file=.clang-tidy
+            done
           "
