@@ -60,37 +60,20 @@ PR作成後、自動で以下のチェックが走ります。
 | ジョブ | 内容 |
 |---|---|
 | `build` | colcon ビルド確認 |
-| `cpplint` | Google スタイル準拠チェック |
 | `clang-tidy` | 静的解析・命名規則チェック |
 
 - ❌ がついているPRは、**内容を一切見ません**
 - 全て ✅ になるまで自力で修正すること
 - ローカルで事前確認する場合:
   ```bash
-  # cpplint
-  find src -name "*.cpp" -o -name "*.hpp" | grep -v "src/ext_" | xargs cpplint
+  # ビルド + compile_commands.json 生成
+  colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-  # clang-tidy（colcon build 後に compile_commands.json が生成される）
-  clang-tidy src/ctrl_*/src/*.cpp -p build
-  ```
-
-- PR作成後、自動で以下のチェックが走ります
-
-| ジョブ | 内容 |
-|---|---|
-| `build` | colcon ビルド確認 |
-| `cpplint` | Google スタイル準拠チェック |
-| `clang-tidy` | 静的解析・命名規則チェック |
-
-- ❌ がついているPRは、**内容を一切見ません**
-- 全て ✅ になるまで自力で修正すること
-- ローカルで事前確認する場合:
-  ```bash
-  # cpplint
-  find src -name "*.cpp" -o -name "*.hpp" | grep -v "src/ext_" | xargs cpplint
-
-  # clang-tidy（compile_commands.json が必要）
-  clang-tidy src/ctrl_*/src/*.cpp -p build
+  # clang-tidy
+  find src -name "*.cpp" | grep -v "src/ext_" | while read file; do
+    pkg=$(echo "$file" | cut -d/ -f2)
+    clang-tidy "$file" -p "build/$pkg" --config-file=.clang-tidy
+  done
   ```
 
 ---
