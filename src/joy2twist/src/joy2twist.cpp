@@ -1,4 +1,4 @@
-#define _USER_MATH_DEFINES
+#define _USER_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier,readability-identifier-naming)
 #include <chrono>
 #include <memory>
 #include <string>
@@ -23,18 +23,18 @@ public:
         ss << a << " ";
       RCLCPP_INFO(this->get_logger(), "Axes: %s", ss.str().c_str());*/
       
-      float Lstick_x = -msg->axes[0];
-      float Lstick_y = -msg->axes[1];
-      float Rstick_x = -msg->axes[3];
-      float Rstick_y = -msg->axes[4];
+      float lstick_x = -msg->axes[0];
+      float lstick_y = -msg->axes[1];
+      float rstick_x = -msg->axes[3];
+      float rstick_y = -msg->axes[4];
 
-      float Vx = Lstick_y;
-      float Vy = Lstick_x;
+      float vx = lstick_y;
+      float vy = lstick_x;
 
       auto message = geometry_msgs::msg::Twist();
-      message.linear.x = Vx;
-      message.linear.y = Vy;
-      message.angular.z = Rstick_x * 10;
+      message.linear.x = vx;
+      message.linear.y = vy;
+      message.angular.z = rstick_x * 10;
       this->publisher_->publish(message);
     };
 

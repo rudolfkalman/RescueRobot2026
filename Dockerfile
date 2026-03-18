@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-joint-state-publisher-gui \
     neovim \
     tree \
+    clang-tidy \
  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \
@@ -60,4 +61,3 @@ RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
  && sudo apt-get -y install libgz-tools2-dev \
  && sudo apt -y upgrade \
  && sudo rm -rf /var/lib/apt/lists/*
-
