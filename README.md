@@ -55,9 +55,43 @@ Windowsで開発を行う場合は、必ず **WSL2** 上でコンテナを起動
 
 ### 4. 自動検閲 (GitHub Actions)
 
-- PR作成後、自動でビルドチェック（Actions）が走ります
+PR作成後、自動で以下のチェックが走ります。
+
+| ジョブ | 内容 |
+|---|---|
+| `build` | colcon ビルド確認 |
+| `cpplint` | Google スタイル準拠チェック |
+| `clang-tidy` | 静的解析・命名規則チェック |
+
 - ❌ がついているPRは、**内容を一切見ません**
 - 全て ✅ になるまで自力で修正すること
+- ローカルで事前確認する場合:
+  ```bash
+  # cpplint
+  find src -name "*.cpp" -o -name "*.hpp" | grep -v "src/ext_" | xargs cpplint
+
+  # clang-tidy（colcon build 後に compile_commands.json が生成される）
+  clang-tidy src/ctrl_*/src/*.cpp -p build
+  ```
+
+- PR作成後、自動で以下のチェックが走ります
+
+| ジョブ | 内容 |
+|---|---|
+| `build` | colcon ビルド確認 |
+| `cpplint` | Google スタイル準拠チェック |
+| `clang-tidy` | 静的解析・命名規則チェック |
+
+- ❌ がついているPRは、**内容を一切見ません**
+- 全て ✅ になるまで自力で修正すること
+- ローカルで事前確認する場合:
+  ```bash
+  # cpplint
+  find src -name "*.cpp" -o -name "*.hpp" | grep -v "src/ext_" | xargs cpplint
+
+  # clang-tidy（compile_commands.json が必要）
+  clang-tidy src/ctrl_*/src/*.cpp -p build
+  ```
 
 ---
 
