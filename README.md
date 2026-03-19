@@ -65,15 +65,9 @@ PR作成後、自動で以下のチェックが走ります。
 - ❌ がついているPRは、**内容を一切見ません**
 - 全て ✅ になるまで自力で修正すること
 - ローカルで事前確認する場合:
-  ```bash
-  # ビルド + compile_commands.json 生成
-  colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-  # clang-tidy
-  find src -name "*.cpp" | grep -v "src/ext_" | while read file; do
-    pkg=$(echo "$file" | cut -d/ -f2)
-    clang-tidy "$file" -p "build/$pkg" --config-file=.clang-tidy
-  done
+  ```bash
+  ./scripts/clang_tidy_check.sh
   ```
 
 ---
@@ -114,6 +108,25 @@ PR作成後、自動で以下のチェックが走ります。
 - マジックナンバー禁止（定数または設定ファイルに切り出す）
 - `TODO` / `FIXME` には担当者名と日付を記載: `// TODO(tanaka 2026-01-01): 内容`
 - 不要なコメントアウトコードはコミット前に削除すること
+
+### clang-tidy の警告を抑制する
+
+やむを得ず規約に従えない場合は `NOLINT` コメントで個別に抑制できる。**乱用禁止。** 理由がない抑制はレビューで差し戻す。
+
+```cpp
+// 特定のチェックを抑制
+using namespace std::chrono_literals;  // NOLINT(build/namespaces)
+
+// 複数のチェックを抑制
+#define _USER_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier,readability-identifier-naming)
+
+// 次の行を抑制
+// NOLINTNEXTLINE(readability-identifier-naming)
+float Vx = lstick_y;
+
+// 全チェックを抑制
+some_code();  // NOLINT
+```
 
 ---
 
