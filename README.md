@@ -115,6 +115,25 @@ PR作成後、自動で以下のチェックが走ります。
 - `TODO` / `FIXME` には担当者名と日付を記載: `// TODO(tanaka 2026-01-01): 内容`
 - 不要なコメントアウトコードはコミット前に削除すること
 
+### clang-tidy の警告を抑制する
+
+やむを得ず規約に従えない場合は `NOLINT` コメントで個別に抑制できる。**乱用禁止。** 理由がない抑制はレビューで差し戻す。
+
+```cpp
+// 特定のチェックを抑制
+using namespace std::chrono_literals;  // NOLINT(build/namespaces)
+
+// 複数のチェックを抑制
+#define _USER_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier,readability-identifier-naming)
+
+// 次の行を抑制
+// NOLINTNEXTLINE(readability-identifier-naming)
+float Vx = lstick_y;
+
+// 全チェックを抑制
+some_code();  // NOLINT
+```
+
 ---
 
 ### 🚫 キャッシュ・不要ファイルのアップロード禁止
