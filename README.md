@@ -65,15 +65,9 @@ PR作成後、自動で以下のチェックが走ります。
 - ❌ がついているPRは、**内容を一切見ません**
 - 全て ✅ になるまで自力で修正すること
 - ローカルで事前確認する場合:
-  ```bash
-  # ビルド + compile_commands.json 生成
-  colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-  # clang-tidy
-  find src -name "*.cpp" | grep -v "src/ext_" | while read file; do
-    pkg=$(echo "$file" | cut -d/ -f2)
-    clang-tidy "$file" -p "build/$pkg" --config-file=.clang-tidy
-  done
+  ```bash
+  ./scripts/clang_tidy_check.sh
   ```
 
 ---
