@@ -23,18 +23,18 @@ public:
         ss << a << " ";
       RCLCPP_INFO(this->get_logger(), "Axes: %s", ss.str().c_str());*/
       
-      float lstick_x = -msg->axes[0];
-      float lstick_y = -msg->axes[1];
-      float rstick_x = -msg->axes[3];
-      float rstick_y = -msg->axes[4];
+      float l_stick_x = -msg->axes[0];
+      float l_stick_y = -msg->axes[1];
+      float r_stick_x = -msg->axes[3];
+      float r_stick_y = -msg->axes[4];
 
-      float vx = lstick_y;
-      float vy = lstick_x;
+      float vx = l_stick_y;
+      float vy = l_stick_x;
 
       auto message = geometry_msgs::msg::Twist();
       message.linear.x = vx;
       message.linear.y = vy;
-      message.angular.z = rstick_x * 10;
+      message.angular.z = r_stick_x * 10;
       this->publisher_->publish(message);
     };
 
