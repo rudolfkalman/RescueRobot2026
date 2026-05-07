@@ -1,0 +1,97 @@
+================================================================
+PS5 DualSense Controller Mapping for ROS 2
+================================================================
+[基本ルール]
+- 命名規則: すべて小文字 + アンダーバー
+- ボタン: 離して 0 / 押して 1
+- スティック/十字キー:
+    * 左方向 = 正 (+) / 右方向 = 負 (-)
+    * 上方向 = 正 (+) / 下方向 = 負 (-)
+- L2/R2トリガー:
+    * 未押し 1.0 / 押し込みで減少 / 全押し -1.0
+
+----------------------------------------------------------------
+1. アナログ入力 (msg->axes)
+----------------------------------------------------------------
+Index | 変数名          | 役割          | 極性詳細
+----------------------------------------------------------------
+[0]   | l_stick_y       | 左スティック左右 | 左(+) / 右(-)
+[1]   | l_stick_x       | 左スティック上下 | 上(+) / 下(-)
+[2]   | l2_trigger      | L2トリガー      | 浅(1.0) -> 深(-1.0)
+[3]   | r_stick_y       | 右スティック左右 | 左(+) / 右(-)
+[4]   | r_stick_x       | 右スティック上下 | 上(+) / 下(-)
+[5]   | r2_trigger      | R2トリガー      | 浅(1.0) -> 深(-1.0)
+[6]   | dpad_y          | 十字キー左右     | 左(+) / 右(-)
+[7]   | dpad_x          | 十字キー上下     | 上(+) / 下(-)
+
+----------------------------------------------------------------
+2. ボタン入力 (msg->buttons)
+----------------------------------------------------------------
+Index | 変数名          | 部位
+----------------------------------------------------------------
+[0]   | btn_cross       | × (バツ)
+[1]   | btn_circle      | ○ (マル)
+[2]   | btn_triangle    | △ (サンカク)
+[3]   | btn_square      | □ (シカク)
+[4]   | btn_l1          | L1
+[5]   | btn_r1          | R1
+[8]   | btn_create      | クリエイト (左メニュー)
+[9]   | btn_options     | オプション (右メニュー)
+[10]  | btn_ps          | PSボタン
+[11]  | btn_l3          | L3 (左スティック押し込み)
+[12]  | btn_r3          | R3 (右スティック押し込み)
+
+----------------------------------------------------------------
+3. C++ 変数宣言コピー用
+----------------------------------------------------------------
+// --- アナログ入力 (Axes) の取得 ---
+// 極性：左/上が 正(+)、右/下が 負(-)
+double l_stick_y  = msg->axes[0]; // 左スティック左右
+double l_stick_x  = msg->axes[1]; // 左スティック上下
+double l2_trigger = msg->axes[2]; // L2トリガー (1.0 〜 -1.0)
+double r_stick_y  = msg->axes[3]; // 右スティック左右
+double r_stick_x  = msg->axes[4]; // 右スティック上下
+double r2_trigger = msg->axes[5]; // R2トリガー (1.0 〜 -1.0)
+double dpad_y     = msg->axes[6]; // 十字キー左右
+double dpad_x     = msg->axes[7]; // 十字キー上下
+
+// --- ボタン入力 (Buttons) の取得 ---
+// 0: 離している / 1: 押している
+bool btn_cross    = msg->buttons[0];  // ×
+bool btn_circle   = msg->buttons[1];  // ○
+bool btn_triangle = msg->buttons[2];  // △
+bool btn_square   = msg->buttons[3];  // □
+bool btn_l1       = msg->buttons[4];  // L1
+bool btn_r1       = msg->buttons[5];  // R1
+bool btn_create   = msg->buttons[8];  // クリエイト (左)
+bool btn_options  = msg->buttons[9];  // オプション (右)
+bool btn_ps       = msg->buttons[10]; // PSボタン
+bool btn_l3       = msg->buttons[11]; // 左スティック押し込み
+bool btn_r3       = msg->buttons[12]; // 右スティック押し込み
+
+----------------------------------------------------------------
+4. C++ 実装コード用スニペット
+----------------------------------------------------------------
+// メンバ変数の命名例 (末尾にアンダーバー)
+Eigen::Vector3d target_pos_;
+Eigen::Quaterniond target_q_;
+
+// joy_callback 内の処理例
+void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg) {
+  // スティック (axes)
+  double l_stick_x = msg->axes[1]; // 前後移動
+  double l_stick_y = msg->axes[0]; // 左右移動
+  double r_stick_x = msg->axes[4]; // 上下移動
+  
+  // 十字キーとボタンによる回転 (axes & buttons)
+  double roll  = msg->axes[6] * 0.02; 
+  double pitch = msg->axes[7] * 0.02;
+  double yaw   = (msg->buttons[4] - msg->buttons[5]) * 0.02;
+
+  // 特殊操作 (buttons)
+  if (msg->buttons[11]) { // L3押し込みでリセット
+    target_pos_ = Eigen::Vector3d(0.5, 0.0, 0.0);
+    target_q_ = Eigen::Quaterniond::Identity();
+  }
+}
+================================================================
