@@ -46,11 +46,10 @@ jobs:
         with:
           context: .
           file: Dockerfile
-
           push: ${{ github.event_name != 'pull_request' }}
           load: true
 
-          tags: ${{ env.IMAGE_NAME }}:ci
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
           cache-from: |
@@ -60,7 +59,7 @@ jobs:
 
       - name: Test build inside container
         run: |
-          IMAGE_TAG="${{ env.IMAGE_NAME }}:ci"
+          IMAGE_TAG="ghcr.io/rudolfkalman/ros-dev:jazzy"
 
           docker run --rm \
             -v ${{ github.workspace }}:/ws \
@@ -76,12 +75,8 @@ jobs:
                 --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
                 --packages-ignore \$(ls src | grep '^ext_' || true)
 
-              for file in \$(find src -name '*.cpp' | grep -v 'src/ext_' || true); do
+              # 変更ファイルだけlint（高速化）
+              for file in \$(git diff --name-only origin/develop...HEAD | grep '\.cpp' || true); do
                 pkg=\$(echo \$file | cut -d/ -f2)
-
-                clang-tidy \
-                  \$file \
-                  -p build/\$pkg \
-                  --config-file=.clang-tidy || true
-              done
+                clang-tidy \$file -p build/\$pkg --config-file=.clang-tidy || true
             "
