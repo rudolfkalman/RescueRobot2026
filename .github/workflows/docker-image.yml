@@ -46,11 +46,13 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          load: true
 
-          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+
+          tags: ${{ env.IMAGE_NAME }}:ci
           labels: ${{ steps.meta.outputs.labels }}
+
+          outputs: type=docker
 
           cache-from: |
             type=gha
@@ -59,7 +61,7 @@ jobs:
 
       - name: Test build inside container
         run: |
-          IMAGE_TAG="ghcr.io/rudolfkalman/ros-dev:jazzy"
+          IMAGE_TAG="${{ env.IMAGE_NAME }}:ci"
 
           docker run --rm \
             -v ${{ github.workspace }}:/ws \
@@ -68,16 +70,19 @@ jobs:
             $IMAGE_TAG \
             /bin/bash -c "
               set -e
-
+      
               source /opt/ros/jazzy/setup.sh
-
+      
               colcon build --symlink-install \
                 --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-                --packages-ignore \$(ls src | grep '^ext_' || true)
-
-              # 変更ファイルだけlint（高速化）
-              for file in \$(git diff --name-only origin/develop...HEAD | grep '\.cpp' || true); do
+                --packages-ignore \$(ls src | grep \"^ext_\" || true)
+      
+              for file in \$(find src -name \"*.cpp\" | grep -v \"src/ext_\" || true); do
                 pkg=\$(echo \$file | cut -d/ -f2)
-                clang-tidy \$file -p build/\$pkg --config-file=.clang-tidy || true
+      
+                clang-tidy \
+                  \$file \
+                  -p build/\$pkg \
+                  --config-file=.clang-tidy || true
               done
             "
