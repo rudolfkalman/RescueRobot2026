@@ -58,7 +58,7 @@ jobs:
 
       - name: Test build inside container
         run: |
-          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          IMAGE_TAG=$"${{ env.IMAGE_NAME }}:latest"
 
           docker run --rm \
             -v ${{ github.workspace }}:/ws \
