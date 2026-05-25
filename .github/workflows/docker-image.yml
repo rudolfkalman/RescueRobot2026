@@ -38,7 +38,8 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build image
         uses: docker/build-push-action@v5
@@ -58,7 +59,7 @@ jobs:
 
       - name: Test build inside container
         run: |
-          IMAGE_TAG="${{ env.IMAGE_NAME }}:latest"
+          IMAGE_TAG="ghcr.io/rudolfkalman/ros-dev:jazzy"
 
           docker run --rm \
             -v ${{ github.workspace }}:/ws \
