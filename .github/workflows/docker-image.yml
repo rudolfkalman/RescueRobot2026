@@ -58,7 +58,7 @@ jobs:
 
       - name: Test build inside container
         run: |
-          IMAGE_TAG=$"${{ env.IMAGE_NAME }}:latest"
+          IMAGE_TAG="${{ env.IMAGE_NAME }}:latest"
 
           docker run --rm \
             -v ${{ github.workspace }}:/ws \
