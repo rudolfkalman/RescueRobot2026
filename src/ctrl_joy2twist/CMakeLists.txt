@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(joy2twist)
+project(ctrl_joy2twist)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -12,7 +12,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-add_executable(${PROJECT_NAME} src/joy2twist.cpp)
+add_executable(${PROJECT_NAME} src/ctrl_joy2twist.cpp)
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp std_msgs sensor_msgs geometry_msgs)
 
