@@ -47,7 +47,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
           cache-from: |
-            type=registry,ref=${{ env.BASE_IMAGE }}
             type=gha
 
           cache-to: type=gha,mode=max
