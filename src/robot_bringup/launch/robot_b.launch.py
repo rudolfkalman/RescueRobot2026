@@ -26,11 +26,11 @@ def generate_launch_description():
             output="screen",
         ),
 
-        # Swerve Controller
+        # Crawler Controller
         Node(
-          package='ctrl_swerve_steer',
-          executable='swerve_steer',
-          name='swerve_steer',
+          package='ctrl_crawler',
+          executable='crawler',
+          name='crawler_control',
           parameters=[config_file]
         ),
 
