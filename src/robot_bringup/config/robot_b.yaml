@@ -1,0 +1,33 @@
+/**:
+  ros__parameters:
+
+    wheels:
+      front_left:
+        x: 0.21
+        y: 0.19
+      front_right:
+        x: 0.21
+        y: -0.19
+      rear_left:
+        x: -0.21
+        y: 0.19
+      rear_right:
+        x: -0.21
+        y: -0.19
+
+    # robot geometry
+    wheel_base: 0.42
+    track_width: 0.38
+
+    # wheel limits
+    max_speed: 3.0
+    max_omega: 2.5
+
+    # steering tuning
+    steer_kp: 8.0
+    steer_ki: 0.0
+    steer_kd: 0.2
+
+    # safety
+    enable_timeout: 0.2
+    emergency_stop: true
