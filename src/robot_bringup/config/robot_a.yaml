@@ -1,0 +1,27 @@
+/**:
+  ros__parameters:
+
+    wheels:
+      front_left:
+        x: 0.2
+        y: 0.15
+
+      front_right:
+        x: 0.2
+        y: -0.15
+
+      rear_left:
+        x: -0.2
+        y: 0.15
+
+      rear_right:
+        x: -0.2
+        y: -0.15
+
+    # wheel limits
+    max_speed: 2.0 # [m/s]
+    max_omega: 1.5 # [rad/s]
+
+    # safety
+    enable_timeout: 0.2
+    emergency_stop: true

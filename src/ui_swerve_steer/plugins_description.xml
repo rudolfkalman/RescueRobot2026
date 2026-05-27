@@ -1,0 +1,5 @@
+<library path="swerve_steer">
+  <class name="ui_swerve_steer/SwerveSteerWidget" type="ui_swerve_steer::SwerveSteerWidget" base_class_type="rviz_common::Panel">
+    <description>button panel</description>
+  </class>
+</library>
