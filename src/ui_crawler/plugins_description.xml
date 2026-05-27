@@ -1,0 +1,5 @@
+<library path="crawler_ui">
+  <class name="ui_crawler/CrawlerWidget" type="ui_crawler::CrawlerWidget" base_class_type="rviz_common::Panel">
+    <description>button panel for crawler</description>
+  </class>
+</library>
