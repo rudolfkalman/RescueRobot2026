@@ -1,11 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-<<<<<<<< HEAD:src/ctrl_joy2twist/package.xml
-  <name>ctrl_joy2twist</name>
-========
-  <name>ctrl_ps5_joy_parser</name>
->>>>>>>> develop:src/ctrl_ps5_joy_parser/package.xml
+  <name>ctrl_crawler</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="ubuntu@todo.todo">ubuntu</maintainer>
@@ -15,10 +11,9 @@
 
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>robot_interfaces</depend>
-
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
+  <depend>eigen</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
