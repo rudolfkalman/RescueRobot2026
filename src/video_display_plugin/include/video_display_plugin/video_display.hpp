@@ -6,14 +6,13 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <rclcpp/subscription.hpp>
 #include <mutex>
+#include <queue>
 
 namespace video_display_plugin
 {
 
 class VideoDisplay : public rviz_common::Display
 {
-  Q_OBJECT
-
 public:
   VideoDisplay();
   ~VideoDisplay() override;
@@ -27,10 +26,11 @@ public:
 private:
   void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg);
 
+  rclcpp::Node::SharedPtr ros_node_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscription_;
-  sensor_msgs::msg::Image::SharedPtr latest_image_;
+  std::queue<sensor_msgs::msg::Image::SharedPtr> image_queue_;
   
-  std::mutex image_mutex_;
+  std::mutex queue_mutex_;
 };
 
 } // namespace video_display_plugin
