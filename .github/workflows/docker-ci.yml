@@ -1,0 +1,44 @@
+name: ROS 2 CI in GHCR image
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/rudolfkalman/rescuerobot2026:latest
+      options: --user root
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build workspace
+        run: |
+          set -e
+          source /opt/ros/jazzy/setup.sh
+
+          colcon build --symlink-install \
+            --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            --packages-ignore $(ls src | grep "^ext_" || true)
+
+      - name: Run clang-tidy
+        run: |
+          set -e
+
+          for file in $(find src -name "*.cpp" | grep -v "src/ext_" || true); do
+            pkg=$(echo "$file" | cut -d/ -f2)
+
+            clang-tidy \
+              "$file" \
+              -p build/"$pkg" \
+              --config-file=.clang-tidy || true
+          done
