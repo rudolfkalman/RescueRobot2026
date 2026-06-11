@@ -30,7 +30,7 @@ void CrawlerWidget::onInitialize()
 
   // サブスクライバの初期化
   qt_node_sub_handler_.setRosNodePtr(node);
-  qt_node_sub_handler_.initializeSubscription("/wheels");
+  qt_node_sub_handler_.initializeSubscription("wheels");
 
   // パラメータのロード (2輪クローラー用)
   try {
