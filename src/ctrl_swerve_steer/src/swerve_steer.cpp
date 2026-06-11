@@ -52,7 +52,7 @@ public:
                         .allow_undeclared_parameters(true)
                         .automatically_declare_parameters_from_overrides(true)) {
     publisher_ = this->create_publisher<robot_interfaces::msg::WheelStates>(
-        "/wheels", 10);
+        "wheels", 10);
 
     wheels_["front_left"] = load_wheel("front_left");
     wheels_["front_right"] = load_wheel("front_right");
@@ -96,12 +96,28 @@ public:
         wheel_status.wheels[i].name = name;  
       }
 
+      // --- Limit Board Controls (Robot A) ---
+      auto add_limit_cmd = [&](const std::string &name, bool fwd, bool rev) {
+        robot_interfaces::msg::WheelState state;
+        state.name = name;
+        state.speed = fwd ? 1.0 : (rev ? -1.0 : 0.0);
+        state.angle = 0.0;
+        wheel_status.wheels.push_back(state);
+      };
+
+      // Triangle/Cross -> 0x15
+      add_limit_cmd("limit_15", msg->btn_triangle, msg->btn_cross);
+      // Circle/Square -> 0x16
+      add_limit_cmd("limit_16", msg->btn_circle, msg->btn_square);
+      // L1/R1 -> 0x17
+      add_limit_cmd("limit_17", msg->btn_l1, msg->btn_r1);
+
       this->publisher_->publish(wheel_status);
 
     };
 
     subscription_ = this->create_subscription<robot_interfaces::msg::JoyInput>(
-        "/joy_input", 10, joy_input_callback);
+        "joy_input", 10, joy_input_callback);
   }
 
 private:
