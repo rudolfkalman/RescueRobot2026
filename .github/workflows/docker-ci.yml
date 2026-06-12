@@ -24,7 +24,7 @@ jobs:
       - name: Build workspace
         run: |
           set -e
-          source /opt/ros/jazzy/setup.sh
+          . /opt/ros/jazzy/setup.sh
 
           colcon build --symlink-install \
             --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
