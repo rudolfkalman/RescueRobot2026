@@ -19,7 +19,7 @@ class PS5JoyParser : public rclcpp::Node {
 public:
   PS5JoyParser() : Node("ps5_joy_parser") {
     publisher_ = this->create_publisher<robot_interfaces::msg::JoyInput>(
-        "/joy_input", 10);
+        "joy_input", 10);
     auto joy_callback = [this](sensor_msgs::msg::Joy::UniquePtr msg) -> void {
       /*std::stringstream ss;
       for (auto a : msg->axes)
@@ -84,7 +84,7 @@ public:
     };
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
-        "/joy", 10, joy_callback);
+        "joy", 10, joy_callback);
   }
 
 private:
