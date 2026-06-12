@@ -39,7 +39,7 @@ void SwerveSteerWidget::onInitialize()
 
   // サブスクライバの初期化
   qt_node_sub_handler_.setRosNodePtr(node);
-  qt_node_sub_handler_.initializeSubscription("/wheels");
+  qt_node_sub_handler_.initializeSubscription("wheels");
 
   // パラメータのロード
   std::vector<std::string> wheel_names = {"front_left", "front_right", "rear_left", "rear_right"};

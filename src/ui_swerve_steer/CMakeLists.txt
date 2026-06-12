@@ -22,4 +22,4 @@ target_link_libraries(swerve_steer ${QT5_LIBS})
 
 pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
 
-ament_auto_package()
+ament_auto_package(USE_SCOPED_HEADER_INSTALL_DIR)
