@@ -1,3 +1,4 @@
+#include <rviz_common/window_manager_interface.hpp>
 #include "video_display_plugin/video_display.hpp"
 #include <pluginlib/class_list_macros.hpp>
 #include <rviz_common/display_context.hpp>
@@ -6,83 +7,133 @@ namespace video_display_plugin
 {
 
 VideoDisplay::VideoDisplay()
-: rviz_common::Display()
+: pipeline_(nullptr), appsink_(nullptr), running_(false), label_(nullptr)
 {
+  gst_init(nullptr, nullptr);
 }
 
-VideoDisplay::~VideoDisplay() = default;
+VideoDisplay::~VideoDisplay()
+{
+  stopPipeline();
+}
 
 void VideoDisplay::onInitialize()
 {
-  // ROS ノードを取得
-  auto context = getDisplayContext();
-  if (!context) {
-    RCLCPP_ERROR(rclcpp::get_logger("VideoDisplay"), "Display context is null");
-    return;
-  }
-  
-  auto ros_node_abs = context->getRosNodeAbstraction().lock();
-  if (!ros_node_abs) {
-    RCLCPP_ERROR(rclcpp::get_logger("VideoDisplay"), "ROS node abstraction is null");
-    return;
-  }
-  
-  ros_node_ = ros_node_abs->get_raw_node();
-  if (!ros_node_) {
-    RCLCPP_ERROR(rclcpp::get_logger("VideoDisplay"), "Raw ROS node is null");
-    return;
-  }
+  label_ = new QLabel(context_->getWindowManager()->getParentWindow());
+  label_->setAlignment(Qt::AlignCenter);
+  label_->setText("Waiting for video...");
+  label_->resize(640, 480);
+  label_->show();
 
-  // 画像トピックをサブスクライブ
-  image_subscription_ = ros_node_->create_subscription<sensor_msgs::msg::Image>(
-    "/camera/image_raw",
-    10,
-    std::bind(&VideoDisplay::imageCallback, this, std::placeholders::_1));
-  
-  RCLCPP_INFO(ros_node_->get_logger(), "VideoDisplay initialized");
+  startPipeline();
 }
 
 void VideoDisplay::onEnable()
 {
+  startPipeline();
 }
 
 void VideoDisplay::onDisable()
 {
+  stopPipeline();
 }
 
 void VideoDisplay::update(float wall_dt, float ros_dt)
 {
   Q_UNUSED(wall_dt);
   Q_UNUSED(ros_dt);
-  
-  // 画像キューを処理
-  {
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    if (!image_queue_.empty()) {
-      auto latest_image = image_queue_.front();
-      image_queue_.pop();
-      // TODO: ここで画像をレンダリング
-    }
+
+  std::lock_guard<std::mutex> lock(frame_mutex_);
+  if (!latest_frame_.isNull() && label_) {
+    label_->setPixmap(QPixmap::fromImage(latest_frame_));
+    label_->show();
   }
 }
 
 void VideoDisplay::reset()
 {
-  // キューをクリア
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  while (!image_queue_.empty()) {
-    image_queue_.pop();
+  std::lock_guard<std::mutex> lock(frame_mutex_);
+  latest_frame_ = QImage();
+}
+
+void VideoDisplay::startPipeline()
+{
+  if (running_) return;
+
+  // テスト用パイプライン（videotestsrc → BGR）
+  pipeline_ = gst_parse_launch(
+  "videotestsrc pattern=0 ! videoconvert ! video/x-raw,format=RGB ! appsink name=sink",
+  nullptr
+  );
+
+  if (!pipeline_) {
+    RCLCPP_ERROR(rclcpp::get_logger("VideoDisplay"), "Failed to create pipeline");
+    return;
+  }
+
+  appsink_ = gst_bin_get_by_name(GST_BIN(pipeline_), "sink");
+  gst_app_sink_set_emit_signals(GST_APP_SINK(appsink_), false);
+  gst_app_sink_set_drop(GST_APP_SINK(appsink_), true);
+  gst_app_sink_set_max_buffers(GST_APP_SINK(appsink_), 1);
+
+  gst_element_set_state(pipeline_, GST_STATE_PLAYING);
+  running_ = true;
+  frame_thread_ = std::thread(&VideoDisplay::frameLoop, this);
+
+  RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "Pipeline started");
+}
+
+void VideoDisplay::stopPipeline()
+{
+  if (!running_) return;
+  running_ = false;
+
+  if (frame_thread_.joinable()) {
+    frame_thread_.join();
+  }
+
+  if (pipeline_) {
+    gst_element_set_state(pipeline_, GST_STATE_NULL);
+    gst_object_unref(pipeline_);
+    pipeline_ = nullptr;
+    appsink_ = nullptr;
   }
 }
 
-void VideoDisplay::imageCallback(const sensor_msgs::msg::Image::SharedPtr msg)
+void VideoDisplay::frameLoop()
 {
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  image_queue_.push(msg);
-  
-  // キューサイズを制限（最新1枚のみ保持）
-  if (image_queue_.size() > 1) {
-    image_queue_.pop();
+  while (running_) {
+    GstSample * sample = gst_app_sink_try_pull_sample(GST_APP_SINK(appsink_), GST_SECOND);
+    if (!sample) continue;
+
+    GstBuffer * buffer = gst_sample_get_buffer(sample);
+    GstCaps * caps = gst_sample_get_caps(sample);
+    GstStructure * s = gst_caps_get_structure(caps, 0);
+
+    int width = 0, height = 0;
+    RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "caps: %s", gst_caps_to_string(caps));
+    gst_structure_get_int(s, "width", &width);
+    gst_structure_get_int(s, "height", &height);
+
+    RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "Frame: %dx%d", width, height);
+
+    GstMapInfo map;
+    if (gst_buffer_map(buffer, &map, GST_MAP_READ)) {
+  std::vector<uint8_t> buf(map.data, map.data + map.size);
+  gst_buffer_unmap(buffer, &map);
+
+  RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "pixel[0]: R=%d G=%d B=%d", buf[0], buf[1], buf[2]);
+
+  QImage img(buf.data(), width, height, width * 3, QImage::Format_RGB888);
+  QImage copy = img.copy();
+
+  {
+    std::lock_guard<std::mutex> lock(frame_mutex_);
+    latest_frame_ = copy;
+  }
+}
+
+    gst_sample_unref(sample);
   }
 }
 
