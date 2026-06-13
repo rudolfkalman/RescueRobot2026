@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="video_display_plugin">
+  <class name="video_display_plugin/VideoDisplay"
+         type="video_display_plugin::VideoDisplay"
+         base_class_type="rviz_common::Panel">
+    <description>Display live video stream from camera</description>
+  </class>
+</library>
