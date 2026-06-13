@@ -13,26 +13,27 @@
 #include <QLabel>
 
 #include <rclcpp/rclcpp.hpp>
-#include <rviz_common/display.hpp>
+#include <rviz_common/panel.hpp>
 #include <rviz_common/display_context.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 namespace video_display_plugin
 {
 
-class VideoDisplay : public rviz_common::Display
+class VideoDisplay : public rviz_common::Panel
 {
   Q_OBJECT
 
 public:
-  VideoDisplay();
+  explicit VideoDisplay(QWidget * parent = nullptr);
   ~VideoDisplay() override;
 
   void onInitialize() override;
-  void onEnable() override;
-  void onDisable() override;
-  void update(float wall_dt, float ros_dt) override;
-  void reset() override;
+  void load(const rviz_common::Config & config) override;
+  void save(rviz_common::Config config) const override;
+
+protected:
+  void timerEvent(QTimerEvent * event) override;
 
 private:
   void startPipeline();
@@ -49,6 +50,7 @@ private:
   QImage latest_frame_;
 
   QLabel * label_;
+  int timer_id_;
 };
 
 } // namespace video_display_plugin

@@ -18,6 +18,10 @@ RUN apt-get update && apt-get install -y \
     neovim \
     tree \
     clang-tidy \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu \

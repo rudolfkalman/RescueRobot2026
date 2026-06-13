@@ -2,12 +2,14 @@
 #include "video_display_plugin/video_display.hpp"
 #include <pluginlib/class_list_macros.hpp>
 #include <rviz_common/display_context.hpp>
+#include <QVBoxLayout>
+#include <QTimerEvent>
 
 namespace video_display_plugin
 {
 
-VideoDisplay::VideoDisplay()
-: pipeline_(nullptr), appsink_(nullptr), running_(false), label_(nullptr)
+VideoDisplay::VideoDisplay(QWidget * parent)
+: rviz_common::Panel(parent), pipeline_(nullptr), appsink_(nullptr), running_(false), label_(nullptr), timer_id_(0)
 {
   gst_init(nullptr, nullptr);
 }
@@ -19,48 +21,43 @@ VideoDisplay::~VideoDisplay()
 
 void VideoDisplay::onInitialize()
 {
-  label_ = new QLabel(context_->getWindowManager()->getParentWindow());
+  auto * layout = new QVBoxLayout(this);
+  layout->setContentsMargins(0, 0, 0, 0);
+  label_ = new QLabel("Waiting for video...", this);
   label_->setAlignment(Qt::AlignCenter);
-  label_->setText("Waiting for video...");
-  label_->resize(640, 480);
-  label_->show();
+  label_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+  layout->addWidget(label_);
 
   startPipeline();
+  timer_id_ = startTimer(33); // ~30fps
 }
 
-void VideoDisplay::onEnable()
+void VideoDisplay::load(const rviz_common::Config & config)
 {
-  startPipeline();
+  rviz_common::Panel::load(config);
 }
 
-void VideoDisplay::onDisable()
+void VideoDisplay::save(rviz_common::Config config) const
 {
-  stopPipeline();
+  rviz_common::Panel::save(config);
 }
 
-void VideoDisplay::update(float wall_dt, float ros_dt)
+void VideoDisplay::timerEvent(QTimerEvent * event)
 {
-  Q_UNUSED(wall_dt);
-  Q_UNUSED(ros_dt);
-
-  std::lock_guard<std::mutex> lock(frame_mutex_);
-  if (!latest_frame_.isNull() && label_) {
-    label_->setPixmap(QPixmap::fromImage(latest_frame_));
-    label_->show();
+  if (event->timerId() == timer_id_) {
+    std::lock_guard<std::mutex> lock(frame_mutex_);
+    if (!latest_frame_.isNull() && label_) {
+      label_->setPixmap(QPixmap::fromImage(latest_frame_).scaled(
+        label_->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
   }
-}
-
-void VideoDisplay::reset()
-{
-  std::lock_guard<std::mutex> lock(frame_mutex_);
-  latest_frame_ = QImage();
 }
 
 void VideoDisplay::startPipeline()
 {
   if (running_) return;
 
-  // テスト用パイプライン（videotestsrc → BGR）
+  // テスト用パイプライン（videotestsrc → RGB）
   pipeline_ = gst_parse_launch(
   "videotestsrc pattern=0 ! videoconvert ! video/x-raw,format=RGB ! appsink name=sink",
   nullptr
@@ -98,6 +95,11 @@ void VideoDisplay::stopPipeline()
     pipeline_ = nullptr;
     appsink_ = nullptr;
   }
+
+  if (timer_id_ != 0) {
+    killTimer(timer_id_);
+    timer_id_ = 0;
+  }
 }
 
 void VideoDisplay::frameLoop()
@@ -111,21 +113,14 @@ void VideoDisplay::frameLoop()
     GstStructure * s = gst_caps_get_structure(caps, 0);
 
     int width = 0, height = 0;
-    RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "caps: %s", gst_caps_to_string(caps));
     gst_structure_get_int(s, "width", &width);
     gst_structure_get_int(s, "height", &height);
 
-    RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "Frame: %dx%d", width, height);
-
     GstMapInfo map;
     if (gst_buffer_map(buffer, &map, GST_MAP_READ)) {
-  std::vector<uint8_t> buf(map.data, map.data + map.size);
-  gst_buffer_unmap(buffer, &map);
-
-  RCLCPP_INFO(rclcpp::get_logger("VideoDisplay"), "pixel[0]: R=%d G=%d B=%d", buf[0], buf[1], buf[2]);
-
-  QImage img(buf.data(), width, height, width * 3, QImage::Format_RGB888);
+  QImage img(map.data, width, height, width * 3, QImage::Format_RGB888);
   QImage copy = img.copy();
+  gst_buffer_unmap(buffer, &map);
 
   {
     std::lock_guard<std::mutex> lock(frame_mutex_);
@@ -139,4 +134,4 @@ void VideoDisplay::frameLoop()
 
 } // namespace video_display_plugin
 
-PLUGINLIB_EXPORT_CLASS(video_display_plugin::VideoDisplay, rviz_common::Display)
+PLUGINLIB_EXPORT_CLASS(video_display_plugin::VideoDisplay, rviz_common::Panel)

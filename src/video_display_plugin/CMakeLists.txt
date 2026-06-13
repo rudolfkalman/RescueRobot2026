@@ -37,6 +37,7 @@ target_link_libraries(${PROJECT_NAME}
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
   pluginlib::pluginlib
+  Qt5::Widgets
   ${OpenCV_LIBRARIES}
   ${GST_LIBRARIES}
 )
