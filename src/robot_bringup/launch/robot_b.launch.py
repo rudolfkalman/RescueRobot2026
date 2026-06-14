@@ -57,6 +57,15 @@ def generate_launch_description():
                   parameters=[config_file]
                 ),
 
+                # Dual-arm servo bridge
+                Node(
+                    package='ctrl_dualarm',
+                    executable='dualarm_bridge',
+                    name='dualarm_bridge',
+                    parameters=[config_file],
+                    output='screen'
+                ),
+
                 # RViz2
                 Node(
                     package='rviz2',

@@ -1,0 +1,23 @@
+# udev rule for the RescueRobot2026 dual-arm ESP32 (robot_b)
+#
+# Creates a stable symlink /dev/esp_arm for the ESP32 USB-serial device so the
+# device path does not collide with /dev/ttyUSB0 (used by the micro-ROS agent
+# launched via scripts/start_mros_serial.sh).
+#
+# Installation:
+#   1. sudo cp 99-esp-arm.rules /etc/udev/rules.d/
+#   2. sudo udevadm control --reload-rules
+#   3. sudo udevadm trigger
+#
+# Find the right identifiers for your board with:
+#   udevadm info -a -n /dev/ttyUSB0 | grep -E 'idVendor|idProduct|serial'
+#
+# Prefer matching on {serial} when the adapter exposes a unique serial number
+# (CP2102 / native USB). Many CH340 chips share no serial, so fall back to
+# idVendor/idProduct (note: with two identical CH340 boards this is ambiguous).
+
+# Example: match by unique serial (recommended)
+SUBSYSTEM=="tty", ATTRS{serial}=="REPLACE_WITH_SERIAL", SYMLINK+="esp_arm", MODE="0666"
+
+# Example: CH340 by VID/PID (use only if the board has no unique serial)
+# SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="esp_arm", MODE="0666"
