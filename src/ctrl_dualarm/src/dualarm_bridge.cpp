@@ -30,7 +30,7 @@ constexpr int kSubscriptionQueueDepth = 10;
 class DualArmBridge : public rclcpp::Node {
  public:
   DualArmBridge() : Node("dualarm_bridge") {
-    const std::string device_path =
+    std::string device_path =
         this->declare_parameter<std::string>("device_path", "/dev/esp_arm");
 
     joint_order_ = this->declare_parameter<std::vector<std::string>>(
@@ -85,7 +85,7 @@ class DualArmBridge : public rclcpp::Node {
     }
   }
 
-  void OnArmStates(const robot_interfaces::msg::ArmStates::SharedPtr msg) {
+  void OnArmStates(robot_interfaces::msg::ArmStates::SharedPtr msg) {
     for (const auto& joint : msg->joints) {
       const auto it = index_.find(joint.name);
       if (it == index_.end()) {
@@ -114,6 +114,7 @@ class DualArmBridge : public rclcpp::Node {
   std::vector<double> sign_;
   std::unordered_map<std::string, int> index_;
 
+  // NOLINTNEXTLINE(readability-identifier-naming): rclcpp library typedef name.
   rclcpp::Subscription<robot_interfaces::msg::ArmStates>::SharedPtr arm_sub_;
   rclcpp::TimerBase::SharedPtr reopen_timer_;
 };
