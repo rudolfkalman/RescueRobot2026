@@ -87,10 +87,9 @@ static bool write_line(servo_handle_t* handle, const char* line, size_t len) {
 bool servo_send_all(servo_handle_t* handle, const double angles_deg[SERVO_COUNT]) {
   char line[128];
   int len = snprintf(line, sizeof(line),
-      "S %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
+      "S %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
       angles_deg[0], angles_deg[1], angles_deg[2], angles_deg[3],
-      angles_deg[4], angles_deg[5], angles_deg[6], angles_deg[7],
-      angles_deg[8]);
+      angles_deg[4], angles_deg[5], angles_deg[6], angles_deg[7]);
   if (len <= 0) {
     return false;
   }
