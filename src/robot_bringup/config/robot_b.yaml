@@ -1,3 +1,20 @@
+/**:
+  ros__parameters:
+    tracks:
+      left:
+        x: -0.19
+      right:
+        x: 0.19
+    wheel_base: 0.42
+    track_width: 0.38
+    max_speed: 3.0
+    max_omega: 2.5
+    steer_kp: 8.0
+    steer_ki: 0.0
+    steer_kd: 0.2
+    enable_timeout: 0.2
+    emergency_stop: true
+
 # 8-axis arm bridge (esp_arm8)
 /robot_b/dualarm_bridge:
   ros__parameters:
