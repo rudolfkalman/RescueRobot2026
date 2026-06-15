@@ -1,0 +1,5 @@
+<library path="square_diff_drive">
+  <class name="ui_square_diff_drive/SquareDiffDriveWidget" type="ui_square_diff_drive::SquareDiffDriveWidget" base_class_type="rviz_common::Panel">
+    <description>button panel</description>
+  </class>
+</library>
