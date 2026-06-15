@@ -45,8 +45,14 @@ private:
         op_send_duty_auto(handle_, 0x21, duty);
       } else if (wheel.name == "left") {
         op_send_duty_auto(handle_, 0x22, duty);
-      } else if (wheel.name == "conveyor") {
-        op_send_direction_auto(handle_, 0x23, static_cast<int8_t>(wheel.speed));
+      } else if (wheel.name == "mech_1") {
+        op_send_duty_auto(handle_, 0x23, duty);
+      } else if (wheel.name == "mech_2") {
+        op_send_duty_auto(handle_, 0x24, duty);
+      } else if (wheel.name == "abs_1") {
+        op_send_target_angle_auto(handle_, 0x25, static_cast<float>(wheel.angle));
+      } else if (wheel.name == "abs_2") {
+        op_send_target_angle_auto(handle_, 0x26, static_cast<float>(wheel.angle));
       }
       // --- Robot A (Swerve) Mapping ---
       else if (wheel.name == "front_left") {

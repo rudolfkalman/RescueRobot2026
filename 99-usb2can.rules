@@ -13,7 +13,7 @@
 #   /dev/usb2can_b
 
 # Robot A Adapter (STM32 UID: 205E3990534B)
-SUBSYSTEM=="tty", ATTRS{serial}=="205E3990534B", SYMLINK+="usb2can_a", MODE="0666"
+SUBSYSTEM=="tty", ATTRS{serial}=="209B3988534B", SYMLINK+="usb2can_a", MODE="0666"
 
 # Robot B Adapter (STM32 UID: 209A3991534B)
 SUBSYSTEM=="tty", ATTRS{serial}=="209A3991534B", SYMLINK+="usb2can_b", MODE="0666"
