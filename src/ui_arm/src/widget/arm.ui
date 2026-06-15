@@ -237,6 +237,30 @@
     </widget>
    </item>
 
+   <!-- Conveyor -->
+   <item>
+    <widget class="QGroupBox" name="groupBox_conveyor">
+     <property name="title"><string>Conveyor</string></property>
+     <layout class="QHBoxLayout" name="hboxConveyor">
+      <item>
+       <widget class="QPushButton" name="btn_conveyor_fwd">
+        <property name="text"><string>▶ Forward</string></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_conveyor_stop">
+        <property name="text"><string>■ Stop</string></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_conveyor_rev">
+        <property name="text"><string>◀ Backward</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
    <!-- Reset button -->
    <item>
     <widget class="QPushButton" name="btn_reset">

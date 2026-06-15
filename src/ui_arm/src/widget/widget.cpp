@@ -18,6 +18,9 @@ void ArmWidget::onInitialize()
   pub_handler_.setRosNodePtr(node);
   pub_handler_.initializePublisher("arm");
 
+  conveyor_pub_handler_.setRosNodePtr(node);
+  conveyor_pub_handler_.initializePublisher("wheels");
+
   struct JointEntry {
     QSlider * slider;
     QLabel  * label;
@@ -41,6 +44,10 @@ void ArmWidget::onInitialize()
         publishAll();
       });
   }
+
+  connect(ui.btn_conveyor_fwd,  &QPushButton::clicked, this, [this]{ publishConveyor( 1.0); });
+  connect(ui.btn_conveyor_stop, &QPushButton::clicked, this, [this]{ publishConveyor( 0.0); });
+  connect(ui.btn_conveyor_rev,  &QPushButton::clicked, this, [this]{ publishConveyor(-1.0); });
 
   connect(ui.btn_reset, &QPushButton::clicked, this, &ArmWidget::resetAll);
 }
@@ -72,6 +79,17 @@ void ArmWidget::publishAll()
     msg.joints.push_back(s);
   }
   pub_handler_.publishMsg(msg);
+}
+
+void ArmWidget::publishConveyor(double speed)
+{
+  robot_interfaces::msg::WheelStates msg;
+  robot_interfaces::msg::WheelState s;
+  s.name  = "conveyor";
+  s.speed = speed;
+  s.angle = 0.0;
+  msg.wheels.push_back(s);
+  conveyor_pub_handler_.publishMsg(msg);
 }
 
 void ArmWidget::resetAll()

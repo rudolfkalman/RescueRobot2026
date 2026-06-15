@@ -17,6 +17,15 @@ def generate_launch_description():
             actions=[
                 PushRosNamespace('robot_b'),
 
+                # USB2CAN Bridge (conveyor motor)
+                Node(
+                    package='ctrl_usb2can',
+                    executable='usb2can_bridge',
+                    name='usb2can_bridge',
+                    parameters=[{'device_path': '/dev/usb2can_b'}],
+                    output='screen'
+                ),
+
                 # 8-axis arm bridge (esp_arm8)
                 Node(
                     package='ctrl_dualarm',
