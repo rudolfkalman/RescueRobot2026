@@ -35,7 +35,7 @@ public:
 
       robot_interfaces::msg::WheelStates wheel_status;
 
-      // Left track
+      // 1. Crawler Tracks
       {
         robot_interfaces::msg::WheelState state;
         state.name = "left";
@@ -43,13 +43,46 @@ public:
         state.angle = 0.0;
         wheel_status.wheels.push_back(state);
       }
-
-      // Right track
       {
         robot_interfaces::msg::WheelState state;
         state.name = "right";
         state.speed = v + omega * right_track_x_;
         state.angle = 0.0;
+        wheel_status.wheels.push_back(state);
+      }
+
+      // 2. Button pairs (PWM/Direction)
+      // Circle (+) / Cross (-) -> mech_1 (ID 0x23)
+      {
+        robot_interfaces::msg::WheelState state;
+        state.name = "mech_1";
+        state.speed = (msg->btn_circle ? 1.0 : 0.0) - (msg->btn_cross ? 1.0 : 0.0);
+        state.angle = 0.0;
+        wheel_status.wheels.push_back(state);
+      }
+      // Triangle (+) / Square (-) -> mech_2 (ID 0x24)
+      {
+        robot_interfaces::msg::WheelState state;
+        state.name = "mech_2";
+        state.speed = (msg->btn_triangle ? 1.0 : 0.0) - (msg->btn_square ? 1.0 : 0.0);
+        state.angle = 0.0;
+        wheel_status.wheels.push_back(state);
+      }
+
+      // 3. ABS (As is)
+      // Left horizontal -> abs_1, Right horizontal -> abs_2
+      {
+        robot_interfaces::msg::WheelState state;
+        state.name = "abs_1";
+        state.speed = 0.0;
+        state.angle = msg->l_stick_y;
+        wheel_status.wheels.push_back(state);
+      }
+      {
+        robot_interfaces::msg::WheelState state;
+        state.name = "abs_2";
+        state.speed = 0.0;
+        state.angle = msg->r_stick_y;
         wheel_status.wheels.push_back(state);
       }
 
