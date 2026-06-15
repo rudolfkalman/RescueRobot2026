@@ -13,6 +13,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/JoyInput.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
+  "msg/ArmState.msg"
+  "msg/ArmStates.msg"
 )
 
 ament_package()
