@@ -17,7 +17,7 @@
 namespace ctrl_dualarm {
 
 namespace {
-constexpr int kServoCount = 8;
+constexpr int kServoCount = 9;
 constexpr double kAngleMinDeg = 0.0;
 constexpr double kAngleMaxDeg = 180.0;
 constexpr double kNeutralDeg = 90.0;

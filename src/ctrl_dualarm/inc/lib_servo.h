@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define SERVO_COUNT 8
+#define SERVO_COUNT 9
 #define SERVO_DEV_PATH_MAX 256
 
 /* Managed serial connection to the ESP32 servo controller. */
