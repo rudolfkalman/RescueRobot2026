@@ -1,5 +1,5 @@
-// Dual-arm servo bridge: subscribes ArmStates and forwards the 8 joint angles
-// to the ESP32 over USB serial.
+// Dual-arm servo bridge: subscribes ArmStates and forwards joint angles
+// to an ESP32 over USB serial using the "S a0..a7" bulk command.
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -17,11 +17,13 @@
 namespace ctrl_dualarm {
 
 namespace {
-constexpr int kServoCount = 9;
+constexpr int kServoCount = 8;
 constexpr double kAngleMinDeg = 0.0;
 constexpr double kAngleMaxDeg = 180.0;
 constexpr double kNeutralDeg = 90.0;
 constexpr double kRadToDeg = 180.0 / M_PI;
+constexpr double kSendThresholdDeg = 0.5;
+constexpr int kKeepalivePeriodMs = 1000;
 constexpr int kReopenPeriodMs = 500;
 constexpr int kWarnThrottleMs = 1000;
 constexpr int kSubscriptionQueueDepth = 10;
@@ -31,7 +33,7 @@ class DualArmBridge : public rclcpp::Node {
  public:
   DualArmBridge() : Node("dualarm_bridge") {
     std::string device_path =
-        this->declare_parameter<std::string>("device_path", "/dev/esp_arm");
+        this->declare_parameter<std::string>("device_path", "/dev/esp_arm8");
 
     joint_order_ = this->declare_parameter<std::vector<std::string>>(
         "joint_order",
@@ -43,10 +45,8 @@ class DualArmBridge : public rclcpp::Node {
         "sign", std::vector<double>(kServoCount, 1.0));
 
     angles_deg_.fill(kNeutralDeg);
-    for (int i = 0; i < kServoCount; ++i) {
-      if (i < static_cast<int>(joint_order_.size())) {
-        index_[joint_order_[i]] = i;
-      }
+    for (int i = 0; i < static_cast<int>(joint_order_.size()); ++i) {
+      index_[joint_order_[i]] = i;
     }
 
     handle_ = servo_open(device_path.c_str());
@@ -66,6 +66,10 @@ class DualArmBridge : public rclcpp::Node {
     reopen_timer_ = this->create_wall_timer(
         std::chrono::milliseconds(kReopenPeriodMs),
         std::bind(&DualArmBridge::TryReopen, this));
+
+    keepalive_timer_ = this->create_wall_timer(
+        std::chrono::milliseconds(kKeepalivePeriodMs),
+        std::bind(&DualArmBridge::OnKeepalive, this));
   }
 
   ~DualArmBridge() override {
@@ -81,11 +85,26 @@ class DualArmBridge : public rclcpp::Node {
 
   void TryReopen() {
     if (handle_ != nullptr && handle_->fd < 0) {
-      servo_try_reopen(handle_);
+      if (servo_try_reopen(handle_)) {
+        RCLCPP_INFO(this->get_logger(), "Reconnected to serial device.");
+      }
     }
   }
 
+  void SendAll() {
+    if (!servo_send_all(handle_, angles_deg_.data())) {
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(),
+                           kWarnThrottleMs,
+                           "Serial write failed; will retry connection.");
+    }
+  }
+
+  void OnKeepalive() {
+    SendAll();
+  }
+
   void OnArmStates(robot_interfaces::msg::ArmStates::SharedPtr msg) {
+    bool changed = false;
     for (const auto& joint : msg->joints) {
       const auto it = index_.find(joint.name);
       if (it == index_.end()) {
@@ -96,14 +115,17 @@ class DualArmBridge : public rclcpp::Node {
           i >= static_cast<int>(sign_.size())) {
         continue;
       }
-      const double deg = offset_deg_[i] + sign_[i] * (joint.angle * kRadToDeg);
-      angles_deg_[i] = Clamp(deg, kAngleMinDeg, kAngleMaxDeg);
+      const double new_deg =
+          Clamp(offset_deg_[i] + sign_[i] * (joint.angle * kRadToDeg),
+                kAngleMinDeg, kAngleMaxDeg);
+      if (std::abs(new_deg - angles_deg_[i]) < kSendThresholdDeg) {
+        continue;
+      }
+      angles_deg_[i] = new_deg;
+      changed = true;
     }
-
-    if (!servo_send_all(handle_, angles_deg_.data())) {
-      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(),
-                           kWarnThrottleMs,
-                           "Serial write failed; will retry connection.");
+    if (changed) {
+      SendAll();
     }
   }
 
@@ -117,6 +139,7 @@ class DualArmBridge : public rclcpp::Node {
   // NOLINTNEXTLINE(readability-identifier-naming): rclcpp library typedef name.
   rclcpp::Subscription<robot_interfaces::msg::ArmStates>::SharedPtr arm_sub_;
   rclcpp::TimerBase::SharedPtr reopen_timer_;
+  rclcpp::TimerBase::SharedPtr keepalive_timer_;
 };
 
 }  // namespace ctrl_dualarm

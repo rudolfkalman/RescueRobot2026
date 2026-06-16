@@ -1,32 +1,32 @@
 /**:
   ros__parameters:
-
     tracks:
       left:
         x: -0.19
       right:
         x: 0.19
-
-    # robot geometry
     wheel_base: 0.42
     track_width: 0.38
-
-    # track limits
     max_speed: 3.0
     max_omega: 2.5
-
-    # tuning
     steer_kp: 8.0
     steer_ki: 0.0
     steer_kd: 0.2
-
-    # safety
     enable_timeout: 0.2
     emergency_stop: true
 
-    # dual-arm servo bridge (ESP32 over USB serial)
-    device_path: "/dev/esp_arm"
-    joint_order: [l_joint1, l_joint2, l_joint3, l_joint4,
-                      r_joint1, r_joint2, r_joint3, r_joint4, gripper]
-    offset_deg: [90,90,90,90,90,90,90,90,90]
-    sign:       [1,1,1,1,1,1,1,1,1]
+# 8-axis arm bridge (esp_arm8)
+/robot_b/dualarm_bridge:
+  ros__parameters:
+    device_path: "/dev/esp_arm8"
+    joint_order: [l_joint1, l_joint2, l_joint3, l_joint4, r_joint1, r_joint2, r_joint3, r_joint4]
+    offset_deg: [90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0]
+    sign: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+# 1-axis gripper bridge (esp_arm1)
+/robot_b/gripper_bridge:
+  ros__parameters:
+    device_path: "/dev/esp_arm1"
+    joint_order: [gripper]
+    offset_deg: [90.0]
+    sign: [1.0]

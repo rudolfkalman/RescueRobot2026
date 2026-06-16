@@ -45,6 +45,8 @@ private:
         op_send_duty_auto(handle_, 0x21, duty);
       } else if (wheel.name == "left") {
         op_send_duty_auto(handle_, 0x22, duty);
+      } else if (wheel.name == "conveyor") {
+        op_send_direction_auto(handle_, 0x23, static_cast<int8_t>(wheel.speed));
       }
       // --- Robot A (Swerve) Mapping ---
       else if (wheel.name == "front_left") {

@@ -1,0 +1,5 @@
+<library path="arm_ui">
+  <class name="ui_arm/ArmWidget" type="ui_arm::ArmWidget" base_class_type="rviz_common::Panel">
+    <description>Arm joint slider panel</description>
+  </class>
+</library>
