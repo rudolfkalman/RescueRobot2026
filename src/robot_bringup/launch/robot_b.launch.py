@@ -35,33 +35,42 @@ def generate_launch_description():
 
                 # Joy Node
                 Node(
-                    package="joy",
-                    executable="joy_node",
-                    name="joy_node",
+                    package='joy',
+                    executable='joy_node',
+                    name='joy_node',
                     parameters=[{'dev': LaunchConfiguration('joy_dev')}],
                 ),
 
                 # PS5 parser
                 Node(
-                    package="ctrl_ps5_joy_parser",
-                    executable="ps5_joy_parser",
-                    name="ps5_joy_parser",
-                    output="screen",
+                    package='ctrl_ps5_joy_parser',
+                    executable='ps5_joy_parser',
+                    name='ps5_joy_parser',
+                    output='screen',
                 ),
 
                 # Crawler Controller
                 Node(
-                  package='ctrl_crawler',
-                  executable='crawler',
-                  name='crawler_control',
-                  parameters=[config_file]
+                    package='ctrl_crawler',
+                    executable='crawler',
+                    name='crawler_control',
+                    parameters=[config_file]
                 ),
 
-                # Dual-arm servo bridge
+                # 8-axis arm bridge (esp_arm8)
                 Node(
                     package='ctrl_dualarm',
                     executable='dualarm_bridge',
                     name='dualarm_bridge',
+                    parameters=[config_file],
+                    output='screen'
+                ),
+
+                # 1-axis gripper bridge (esp_arm1)
+                Node(
+                    package='ctrl_dualarm',
+                    executable='dualarm_bridge',
+                    name='gripper_bridge',
                     parameters=[config_file],
                     output='screen'
                 ),
@@ -71,7 +80,6 @@ def generate_launch_description():
                     package='rviz2',
                     executable='rviz2',
                     name='rviz2',
-                    parameters=[config_file]
                 ),
             ]
         )
