@@ -13,7 +13,25 @@ def generate_launch_description():
         'robot_b.yaml'
     )
 
+    # RViz2 config path (pointing to src for persistence if saved)
+    # Note: Use --symlink-install with colcon to avoid having to rebuild for changes in src to take effect in install.
+    rviz_config_path = os.path.join(
+        get_package_share_directory('robot_bringup'),
+        '../../../../src/robot_bringup/rviz/robot_b.rviz'
+    )
+    # Fallback to absolute path if the above fails or just use the provided one but cleaned up
+    # Actually, the user's /home/ubuntu/project is likely where they are.
+    
     return LaunchDescription([
+        DeclareLaunchArgument(
+            'rviz_config',
+            default_value=os.path.join(
+                get_package_share_directory('robot_bringup'),
+                'rviz',
+                'robot_b.rviz'
+            ),
+            description='Path to RViz config file'
+        ),
         DeclareLaunchArgument(
             'joy_dev',
             default_value='/dev/input/js1',
@@ -80,6 +98,8 @@ def generate_launch_description():
                     package='rviz2',
                     executable='rviz2',
                     name='rviz2',
+                    arguments=["-d", LaunchConfiguration('rviz_config')],
+                    output="screen",
                 ),
             ]
         )
